@@ -36,6 +36,8 @@ Now that you have a bot, you need to know how to set it running.
 
 Once the bot is already on your server, you only need to follow **step 4** again to set the bot going. Note that if the code is not currently being run somewhere, the bot won't function, and it will forget any games or game channels it made earlier if it closes while you were in the middle of a game. You can just run it on your own computer if you're happy with it only working when you're online, otherwise you'll need to find a server to keep it going.
 
+Set your name in the privacy notice using the environment variable BOT_ADMIN_NAME.
+
 
 ## Custom Cards: CSV files
 The ilfe _**cards.csv**_ contains a list of any custom cards you would like to add to the game. When you first download the code repository, this file already contains a list of extra cards that Huggyrei (the author of the code) likes to use. The fields are:
