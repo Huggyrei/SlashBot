@@ -1,4 +1,5 @@
 "use strict";
+// Represents a player's hand
 module.exports = class Hand{
     constructor(numDraws, drawDeck){
         this.redrawHand(numDraws,drawDeck);
