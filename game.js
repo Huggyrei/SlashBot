@@ -106,7 +106,14 @@ module.exports = class Game {
         this.groups=[];                 this.randocount=0;      this.gameinprogress=true;
         this.currentplayer=undefined;   this.randoplayed=false; this.guild=msg.guild;
         this.playWaiting=false;         this.newIndex=0;
-        this.cleaner.sendReplyMessage(msg,"new","New game started. Type **" + this.prefix + "join** to play.");
+        let botAdmin = process.env.BOT_ADMIN_NAME
+        if (!botAdmin || botAdmin == "") {
+            botAdmin = "your server moderator"
+        }
+        this.cleaner.sendReplyMessage(msg,"new","New game started. Type **" + this.prefix + "join** to play."
+         + "\n*By joining, you agree to your username and nickname being stored on the bot's server for the "
+         + "duration of the game, for the purposes of playing the game. If you have any concerns or requests "
+         + "please contact the bot admin, " + botAdmin + "*");
     }
     async endgame(msg,checkEnd)
     {
