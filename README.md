@@ -70,6 +70,7 @@ This information can be accessed using the command *//help*. If you're typing co
  - **//skip** : Skip to the next player e.g. if the current player is away from the chat channel.
  - **//groups** : Display a list of all the winning matches selected so far in this game.
  - **//end** : If you want to end the game early, use this command."
+ - **//cleanup** : Delete all slash channels
  - **//folder** : View the name of the parent category. The private channels are created in this category on the server. If you are the server administrator, you can mute the parent folder so that you don't get bothered by notifications from all the individual game channels!
   - **//editfolder *name*** : You can change the name of the category folder with the editfolder command (_or else edit the folder.csv file_).
 

@@ -55,6 +55,43 @@ module.exports = class Cleaner{
     setMainChannel(msg, clientID){
         this.guild=msg.guild;   this.mainChannel=msg.channel;   this.clientID=clientID
     }
+    async cleanupSearch(msg, clientID) {
+        if (this.guild === undefined) {
+            this.setMainChannel(msg, clientID)
+        }
+
+        return this.guild.channels.fetch()
+        .then(channels => {
+            let toClean = []
+            let parentId = ""
+            // Find the category which holds our channels
+            for (const entry of channels) {
+                if (entry[1].name == this.folderName) {
+                    parentId = entry[0]
+                }
+            }
+            // Find the channels to delete
+            for (const entry of channels) {
+                if (entry[1].parent == parentId && entry[1].name.startsWith("slash_")) {
+                    toClean.push([entry[0], entry[1].name])
+                }
+            }
+            
+            return toClean
+        })
+    }
+    async deleteChannels(ids) {
+        if (this.guild === undefined) {
+            this.setMainChannel(msg, clientID)
+        }
+
+        for (const id of ids) {
+            await this.guild.channels.fetch(id)
+            .then(channel => {
+                 return channel.delete("Cleaning up slash channels") 
+                })
+        }
+    }
     async addPlayerChannel(msg, playerName,playerIndex,playerID){ 
         if(this.mainChannel===undefined){this.mainChannel=msg.channel;}
         var permArr = [{id: playerID, allow: ['VIEW_CHANNEL'],}];

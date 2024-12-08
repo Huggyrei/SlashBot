@@ -36,6 +36,7 @@ module.exports = class Game {
                 case 'info': case 'help': this.helpmessage(msg); break;
                 case 'groups': case 'group': case 'matched': case 'won': case 'grouped': this.showGroups(msg, false); break;
                 case 'endgame': case 'end': this.endgame(msg, true); break;
+                case 'cleanup': case 'clean': this.cleanup(msg, clientID); break;
                 case 'join': this.joingame(msg); break;
                 case 'leave': this.leavegame(msg); break;
                 case 'addrand': case 'addrando': this.addrando(msg); break;
@@ -131,6 +132,36 @@ module.exports = class Game {
         this.gameinprogress=false;
         this.showGroups(msg, true);
         setTimeout(()=> {that.cleaner.close()}, 30000);
+    }
+    async cleanup(msg, clientID)
+    {
+        this.cleaner.receivedGeneralMessage("other",msg);
+        if(!this.checks(msg, false, true, false, false, false, false, false, false)){return;}
+        
+        // Find all the channels to delete
+        let toDelete = await this.cleaner.cleanupSearch(msg, clientID)
+
+        // Confirm that we want to delete them
+        var toDeleteMsg = ""
+        if (toDelete.length == 0) {
+            msg.channel.send("No slash channels found")
+            return
+        }
+        for (const entry of toDelete) {
+            toDeleteMsg = toDeleteMsg + "\n" + entry[1]
+        }
+        let ok = await this.cleaner.checkMessageGeneral(msg, msg.channel, msg.author.id, "Delete the following " + toDelete.length + " channel(s)?" + toDeleteMsg + "\n", "Command cancelled")
+        if (ok == false) {
+            return
+        }
+
+        // Delete them
+        let ids = []
+        for (const entry of toDelete) {
+            ids.push(entry[0])
+        }
+
+        await this.cleaner.deleteChannels(ids)
     }
     showscores(msg, recordMsg, sendPermanent)
     {
