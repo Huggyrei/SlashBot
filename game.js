@@ -60,7 +60,7 @@ module.exports = class Game {
             }
         }   
      }
-    splitStr(text,splChar){
+    splitStr(text,splChar){ // splits a string at the first instance of splChar
         text=text.trim();       var text1=text; var text2="";   var spFind = text.indexOf(splChar);
         if(spFind !== -1){
             text2=text.substring(spFind+1).trim();            text1=text.substring(0,spFind);
@@ -276,10 +276,14 @@ module.exports = class Game {
         this.cleaner.sendMessageToAllPlayers("other","Rando player " + randoName +" removed from the game");
         this.randocount--;
     }
-    showjudgecard(msg)
+    showjudgecard(msg, comment)
     {
+        let commentText = ""
+        if (comment && comment != "") {
+            commentText = "\n\"" + comment.substring(1, comment.length - 1) + "\""
+        }
         if(this.judgecard===undefined) {this.cleaner.sendReplyMessage(msg, "other","The character seeking emotionally bonded partners has not yet been selected");}
-        else{this.cleaner.sendMessageToAllPlayers("judgecard","This round you are looking for matches for: \n **" + this.judgecard.fulltext.replaceAll("**","") + "**");}
+        else{this.cleaner.sendMessageToAllPlayers("judgecard","This round you are looking for matches for: \n **" + this.judgecard.fulltext.replaceAll("**","") + "**" + commentText);}
         this.cleaner.sendMessageToAllPlayers("instruct","Select a card or group of cards, entering numbers in one command separated by spaces.\n" + this.players.find(x=>x.id===this.currentplayer).name + " will then view the cards with the command **" + this.prefix + "show**, and select the winning group for this round.");
     }
     discardcard(msg, msginstruct)
@@ -310,6 +314,19 @@ module.exports = class Game {
             this.cleaner.receivedGeneralMessage("other",msg);
             return
         }
+
+        // Find a comment in the command, if present. Commands with a comment look like
+        // "4 (they'd be cute)"
+        let [msgcard, comment] = this.splitStr(msginstruct, "(") // gives [4, they'd be cute)]
+        msginstruct = msgcard
+        if (comment.endsWith(")")) {
+           comment = "(" + comment // add the first parenthesis back in
+        } else {
+            comment = "" // remove malformed comment
+        }
+
+        console.log(msginstruct + " ==== " + comment)
+
         if(!this.playWaiting){
             if(msg.author.id!==this.currentplayer){
                 this.cleaner.sendReplyMessage(msg, "other","You can't play a card yet, the current player has not selected a match"); return;
@@ -317,7 +334,7 @@ module.exports = class Game {
             var card=playerItem.playCards(msg, msginstruct, true, this.deck);
             if(!card){return;}
             this.judgecard=card;
-            this.showjudgecard(msg);
+            this.showjudgecard(msg, comment);
             this.playWaiting=true;
         }else{
             if(msg.author.id===this.currentplayer){
@@ -325,7 +342,7 @@ module.exports = class Game {
             }
             if(this.playarea.find(x=>x.authorID===msg.author.id)){this.cleaner.sendReplyMessage(msg, "other","You cannot play another card, you have already played this turn"); return;}
             var cards=playerItem.playCards(msg, msginstruct, false, this.deck);
-            this.playarea.push(new PlayCardItem(playerItem.id, playerItem.name, cards));
+            this.playarea.push(new PlayCardItem(playerItem.id, playerItem.name, cards, comment));
             this.cleaner.sendMessageToAllPlayersFromSinglePlayer(playerItem.index, playerItem.name + " has played their cards.");
             if(this.playarea.length===this.players.length-this.randocount-1){this.cleaner.sendMessageToAllPlayers("played", "All players have now played their cards.");}
         }
@@ -377,6 +394,9 @@ module.exports = class Game {
             for(var j=1;j<playCards.length;j++){
                 msgcontent = msgcontent + ", " + playCards[j].smalltext;
             }
+            if (this.playarea[i].comment && this.playarea[i].comment != "") {
+                msgcontent = msgcontent + " " + this.playarea[i].comment
+            }
         }
         this.cleaner.sendPermanentMessageToPlayers(msgcontent);
         msgcontent = "If the players choose, they can take the chance to explain why a particular grouping would be a good match. You might want to describe things like: how the character dynamics work; what their first date was like; what they most appreciate about each other."
@@ -386,7 +406,14 @@ module.exports = class Game {
     selectwinner(msg, msginstruct)
     {
         if(!this.checks(msg, true, false, true, false, true, false, true, false)){this.cleaner.receivedGeneralMessage("other",msg); return;}
-        var playinstruct = Number(msginstruct);
+        // message has the form "1" or "1 (some comment)"
+        let [choice, comment] = this.splitStr(msginstruct, " ")
+        var playinstruct = Number(choice);
+        if (comment && comment.startsWith("(") && comment.endsWith(")")) {
+            comment = comment.substring(1, comment.length - 1)
+        } else {
+            comment = ""
+        }
         if (Number.isNaN(playinstruct) || playinstruct<1 || playinstruct>this.playarea.length){
             this.cleaner.receivedGeneralMessage("other",msg);
             this.cleaner.sendReplyMessage(msg, "other", "Error: This is an invalid selection");
@@ -405,6 +432,11 @@ module.exports = class Game {
             groupItem.push(newGroupItem);
             newScore = newScore + chosenCard.cards[i].score;
         }
+
+        if (comment && comment != "") {
+            msgcontent = msgcontent + " \"" + comment + "\""
+        }
+
         this.groups.push(groupItem);
         this.cleaner.sendPermanentMessageToPlayers(msgcontent);
         var playerItem = chosenCard.authorID===-1 ? this.players.find(x=>x.name===chosenCard.name && x.id===-1) : this.players.find(x=>x.id===chosenCard.authorID);
@@ -453,13 +485,14 @@ module.exports = class Game {
     }
 }
 
-
+// Represents a card being played
 class PlayCardItem
 { 
-    constructor(setAuthor, setName, setCards)
+    constructor(setAuthor, setName, setCards, setComment="")
     {
         this.authorID=setAuthor;
         this.name=setName;
         this.cards=setCards;
+        this.comment=setComment;
     }  
 }

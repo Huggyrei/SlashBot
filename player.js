@@ -69,7 +69,7 @@ module.exports = class Player{
     checkCards(msg, splitList){
         for(var i=0;i<splitList.length;i++){
             var newCardIndex=Number(splitList[i]);
-            if(isNaN(newCardIndex)){this.cleaner.sendReplyMessage(msg, "other", "Error: Invalid card index"); return false;}
+            if(isNaN(newCardIndex)){this.cleaner.sendReplyMessage(msg, "other", "Error: Invalid card index: " + newCardIndex); return false;}
             if(newCardIndex<=0 || newCardIndex>this.hand.cards.length || Number.isInteger(newCardIndex)==false){this.cleaner.sendReplyMessage(msg, "other", "Error: Invalid card index"); return false;}
             for(var j=0;j<i;j++){
                 if(Number(splitList[j])===Number(splitList[i])){this.cleaner.sendReplyMessage(msg, "other", "Error: You have listed the same card more than once"); return false;}

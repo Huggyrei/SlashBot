@@ -63,10 +63,10 @@ This information can be accessed using the command *//help*. If you're typing co
  - **//leave** : Leave the game. You can join again later, but your score will be reset to zero. If you might come back again, it might be better to just stay in; the other players can skip your turn.
  - **//addrand** : Create a 'Rando' player, which plays the top 1-3 cards of the deck. These have been given jokey pun names. Sorry about that.
  - **//removerand** : Remove a 'Rando' player.
- - **//*n1 n2 ...*** : Send a list of numbers to play the n1th, n2th, etc. cards from your hand. Note that once you've played cards for this turn, you can't add any more to your selection, so make sure you include the whole selection in one go. 
+ - **//*n1 n2 ...*** : Send a list of numbers to play the n1th, n2th, etc. cards from your hand. Note that once you've played cards for this turn, you can't add any more to your selection, so make sure you include the whole selection in one go. Optionally, include a comment to be played anonymously with your card by adding it in parentheses at the end, e.g. `3 7 (I think they'd all be cute together)`
  - **//dis *n1 n2 ...*** : If you are not currently selecting cards to play, you can use this command to discard the n1th, n2th, etc. cards.
- - **//show** : The current player can use this command to display te cards played this turn. Note: The bot will tell you who has played and will send a message when all players have played cards. Once displayed, players who missed the round will have to wait until the next one.
- - **//n** : The current player chooses the nth played card group as the winner. Whoever played those  cards will gain points equal to the total points on their selected cards.
+ - **//show** : The current player can use this command to display the cards played this turn. Note: The bot will tell you who has played and will send a message when all players have played cards. Once displayed, players who missed the round will have to wait until the next one.
+ - **//n** : The current player chooses the nth played card group as the winner. Whoever played those  cards will gain points equal to the total points on their selected cards. You can also optionally include a comment in parentheses.
  - **//skip** : Skip to the next player e.g. if the current player is away from the chat channel.
  - **//groups** : Display a list of all the winning matches selected so far in this game.
  - **//end** : If you want to end the game early, use this command."
