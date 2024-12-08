@@ -13,4 +13,7 @@ client.on('messageCreate', msg => {
     game.messagehandler(msg,client.user.id);
  });
 
-client.login(process.env.LOGIN_TOKEN);
+let token = process.env.LOGIN_TOKEN
+if (!token) throw new Error("Missing token")
+
+client.login(token);
