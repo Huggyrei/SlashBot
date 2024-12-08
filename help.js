@@ -1,4 +1,4 @@
-exports.makeHelpText1= function(prefix, maxPoints)
+export function makeHelpText1(prefix, maxPoints)
 {
     var helptext = "**Welcome to Slash: Romance Without Borders!** \n";
     helptext=helptext + "Each round, the current player selects a character from their hand who will be matched.\n"

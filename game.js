@@ -1,17 +1,17 @@
 "use strict";
-const randos= require('./randos.js');
-const help= require('./help.js');
-const Deck = require('./deck.js');
-const Cleaner = require('./cleaner.js');
-const Player = require('./player.js');
-const Playdeck = require('./playdeck.js');
+import { makerandodeck } from './randos.js';
+import { makeHelpText1 } from './help.js';
+import Deck from './deck.js';
+import Cleaner from './cleaner.js';
+import Player from './player.js';
+import { makeplaydeck } from './playdeck.js';
 
-module.exports = class Game {
+export default class Game {
     constructor()
     {
         this.cleaner = new Cleaner("Slash");    this.test=0;    
         this.deck = undefined;      this.includeDescription=false;
-        this.randodeck = new Deck("Rando", randos.makerandodeck(), this.cleaner, true);
+        this.randodeck = new Deck("Rando", makerandodeck(), this.cleaner, true);
         this.playarea = [];         this.judgecard=undefined;       this.players=[];
         this.groups=[];             this.randocount=0;              this.maxscore=10;
         this.gameinprogress=false;  this.prefix="//";               this.maxplayer=20;
@@ -91,7 +91,7 @@ module.exports = class Game {
         this.cleaner.sendReplyMessage(msg, "other", "Category for game channels is: " + this.cleaner.folderName + "\nEdit using command " + this.prefix + "editfolder");
     }
     async viewcards(msg){
-        var cards = await Playdeck.makeplaydeck(msg, this.cleaner);
+        var cards = await makeplaydeck(msg, this.cleaner);
         for(var i=0;i<cards.length;i++){
             this.cleaner.sendPermanentReplyMessage(msg, "[**" + (i+1) + "**] : " + cards[i]["fulltext"]);
         }
@@ -101,13 +101,13 @@ module.exports = class Game {
         this.cleaner.receivedGeneralMessage("other",msg);
         if(!this.checks(msg, false, true, false, false, false, false, false, false)){return;}
         this.cleaner.setMainChannel(msg.channel, clientID);
-        var cardList = await Playdeck.makeplaydeck(msg, this.cleaner);
+        var cardList = await makeplaydeck(msg, this.cleaner);
         this.deck = new Deck("Slash",  cardList, this.cleaner, true);
         this.playarea = [];             this.judgecard=undefined;      this.players=[];
         this.groups=[];                 this.randocount=0;      this.gameinprogress=true;
         this.currentplayer=undefined;   this.randoplayed=false; this.guild=msg.guild;
         this.playWaiting=false;         this.newIndex=0;
-        let botAdmin = process.env.BOT_ADMIN_NAME
+        var botAdmin = process.env.BOT_ADMIN_NAME
         if (!botAdmin || botAdmin == "") {
             botAdmin = "your server moderator"
         }
@@ -139,7 +139,7 @@ module.exports = class Game {
         if(!this.checks(msg, false, true, false, false, false, false, false, false)){return;}
         
         // Find all the channels to delete
-        let toDelete = await this.cleaner.cleanupSearch(msg, clientID)
+        var toDelete = await this.cleaner.cleanupSearch(msg, clientID)
 
         // Confirm that we want to delete them
         var toDeleteMsg = ""
@@ -150,13 +150,13 @@ module.exports = class Game {
         for (const entry of toDelete) {
             toDeleteMsg = toDeleteMsg + "\n" + entry[1]
         }
-        let ok = await this.cleaner.checkMessageGeneral(msg, msg.channel, msg.author.id, "Delete the following " + toDelete.length + " channel(s)?" + toDeleteMsg + "\n", "Command cancelled")
+        var ok = await this.cleaner.checkMessageGeneral(msg, msg.channel, msg.author.id, "Delete the following " + toDelete.length + " channel(s)?" + toDeleteMsg + "\n", "Command cancelled")
         if (ok == false) {
             return
         }
 
         // Delete them
-        let ids = []
+        var ids = []
         for (const entry of toDelete) {
             ids.push(entry[0])
         }
@@ -218,10 +218,14 @@ module.exports = class Game {
         }
         var playerItem = new Player(msg.author.id, this.getAuthorName(msg), this.cleaner, this.newIndex, false, this.includeDescription );
         var firstPlayerName;
+        var addChan = await this.cleaner.addPlayerChannel(msg, playerItem.name, playerItem.index, playerItem.id);
+        if(addChan==false){ 
+            this.cleaner.sendReplyMessage(msg, "other","Error: I could not create a channel for you :(");
+            return;
+        }
         if(!this.players.find(x=>!x.isRando)){this.currentplayer=msg.author.id; firstPlayerName=playerItem.name;}
         else{firstPlayerName=this.players.find(x=>x.id===this.currentplayer).name;}
         this.players.push(playerItem);
-        await this.cleaner.addPlayerChannel(msg, playerItem.name, playerItem.index, playerItem.id);
         playerItem.startRound(this.deck, this.handsize, firstPlayerName, this.prefix, this.playWaiting, this.judgecard ? this.judgecard.fulltext : "");
         this.newIndex=this.newIndex+1;
         this.cleaner.sendMessageToAllPlayers("other",playerItem.name + " has joined the game");
@@ -278,10 +282,7 @@ module.exports = class Game {
     }
     showjudgecard(msg, comment)
     {
-        let commentText = ""
-        if (comment && comment != "") {
-            commentText = "\n\"" + comment.substring(1, comment.length - 1) + "\""
-        }
+        var commentText= comment == "" ? "" : "\n\"" + comment + "\"";
         if(this.judgecard===undefined) {this.cleaner.sendReplyMessage(msg, "other","The character seeking emotionally bonded partners has not yet been selected");}
         else{this.cleaner.sendMessageToAllPlayers("judgecard","This round you are looking for matches for: \n **" + this.judgecard.fulltext.replaceAll("**","") + "**" + commentText);}
         this.cleaner.sendMessageToAllPlayers("instruct","Select a card or group of cards, entering numbers in one command separated by spaces.\n" + this.players.find(x=>x.id===this.currentplayer).name + " will then view the cards with the command **" + this.prefix + "show**, and select the winning group for this round.");
@@ -317,15 +318,14 @@ module.exports = class Game {
 
         // Find a comment in the command, if present. Commands with a comment look like
         // "4 (they'd be cute)"
-        let [msgcard, comment] = this.splitStr(msginstruct, "(") // gives [4, they'd be cute)]
-        msginstruct = msgcard
-        if (comment.endsWith(")")) {
-           comment = "(" + comment // add the first parenthesis back in
-        } else {
-            comment = "" // remove malformed comment
+        var comment="";
+        msginstruct = msginstruct.trim();
+        if (msginstruct.endsWith(")")){ 
+            [msginstruct, comment] = this.splitStr(msginstruct, "(") // gives [4, they'd be cute)]
+            if(comment!=""){
+                comment = comment.substring(0, comment.length-1);
+            }
         }
-
-        console.log(msginstruct + " ==== " + comment)
 
         if(!this.playWaiting){
             if(msg.author.id!==this.currentplayer){
@@ -342,6 +342,7 @@ module.exports = class Game {
             }
             if(this.playarea.find(x=>x.authorID===msg.author.id)){this.cleaner.sendReplyMessage(msg, "other","You cannot play another card, you have already played this turn"); return;}
             var cards=playerItem.playCards(msg, msginstruct, false, this.deck);
+            if(!cards){ return;}
             this.playarea.push(new PlayCardItem(playerItem.id, playerItem.name, cards, comment));
             this.cleaner.sendMessageToAllPlayersFromSinglePlayer(playerItem.index, playerItem.name + " has played their cards.");
             if(this.playarea.length===this.players.length-this.randocount-1){this.cleaner.sendMessageToAllPlayers("played", "All players have now played their cards.");}
@@ -395,7 +396,7 @@ module.exports = class Game {
                 msgcontent = msgcontent + ", " + playCards[j].smalltext;
             }
             if (this.playarea[i].comment && this.playarea[i].comment != "") {
-                msgcontent = msgcontent + " " + this.playarea[i].comment
+                msgcontent = msgcontent + "\n\"" + this.playarea[i].comment + "\"";
             }
         }
         this.cleaner.sendPermanentMessageToPlayers(msgcontent);
@@ -407,18 +408,21 @@ module.exports = class Game {
     {
         if(!this.checks(msg, true, false, true, false, true, false, true, false)){this.cleaner.receivedGeneralMessage("other",msg); return;}
         // message has the form "1" or "1 (some comment)"
-        let [choice, comment] = this.splitStr(msginstruct, " ")
-        var playinstruct = Number(choice);
-        if (comment && comment.startsWith("(") && comment.endsWith(")")) {
-            comment = comment.substring(1, comment.length - 1)
-        } else {
-            comment = ""
+        var comment="";
+        if(msginstruct.endsWith(")")){
+            [msginstruct, comment] = this.splitStr(msginstruct, "(");
+            if(comment!=""){
+                comment = comment.substring(0, comment.length - 1);
+            }
         }
+        
+        var playinstruct = Number(msginstruct.trim());
         if (Number.isNaN(playinstruct) || playinstruct<1 || playinstruct>this.playarea.length){
             this.cleaner.receivedGeneralMessage("other",msg);
             this.cleaner.sendReplyMessage(msg, "other", "Error: This is an invalid selection");
             return;
         }
+        
         this.cleaner.receivedMessageFromSinglePlayer("other", msg, this.players.find(x=>x.id===msg.author.id).index);
         var chosenCard=this.playarea[playinstruct-1];   var groupItem=[];
         var newGroupItem = this.judgecard.fulltext.substring(0,this.judgecard.fulltext.indexOf('(')-1);
@@ -468,14 +472,14 @@ module.exports = class Game {
         var i;
         for (i = carddeck.length - 1; i > 0; i--) 
         {
-            let j = Math.floor(Math.random() * (i + 1));
+            var j = Math.floor(Math.random() * (i + 1));
             [carddeck[i], carddeck[j]] = [carddeck[j], carddeck[i]];
         }
     }
     helpmessage(msg)
     {
         this.cleaner.receivedGeneralMessage("other", msg);
-        this.cleaner.sendPermanentReplyMessage(msg, help.makeHelpText1(this.prefix, this.maxscore));
+        this.cleaner.sendPermanentReplyMessage(msg, makeHelpText1(this.prefix, this.maxscore));
     }
     sendChat(msg, msgContent){
         this.cleaner.receivedGeneralMessage("other",msg);

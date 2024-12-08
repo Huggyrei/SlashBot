@@ -1,8 +1,8 @@
 "use strict";
-const fs = require('fs');
-const Discord = require('discord.js');
+import { readFileSync, writeFileSync } from 'fs';
+import Discord, { ChannelType, PermissionFlagsBits } from 'discord.js';
 
-module.exports = class Cleaner{
+export default class Cleaner{
     constructor(gameName){
         this. gameName=gameName;        this.msgCollected=false;    this.msgReturn=false;
         this.mainChannel=undefined;     this.playerChannels=[];     this.guild=undefined;           
@@ -17,14 +17,14 @@ module.exports = class Cleaner{
     }
     loadFolder(){
         try{            
-            this.folderName = fs.readFileSync("./folder.csv", 'utf8'); 
+            this.folderName = readFileSync("./folder.csv", 'utf8'); 
         }
         catch{this.folderName="";}
     }
     setFolder(msg, folderName){
         this.folderName=folderName;
         try{            
-            fs.writeFileSync("./folder.csv", this.folderName); 
+            writeFileSync("./folder.csv", this.folderName); 
             this.sendReplyMessage(msg, "other", "Category folder has been successfully changed");
         }
         catch{this.sendReplyMessage(msg, "other","Error: Cannot save new category name, you may need to re-set this again the next time the bot reloads.");}
@@ -32,7 +32,7 @@ module.exports = class Cleaner{
     async close(){
         for(var i=0;i<this.playerChannels.length;i++){
             if(this.playerChannels[i]!==undefined && this.playerChannels[i].deletable==true){
-                try{await this.playerChannels[i].delete();}catch{}
+                try{await this.playerChannels[i].delete();}catch(err){console.log(err)}
             }
         }
         this.playerChannels=[];
@@ -62,8 +62,8 @@ module.exports = class Cleaner{
 
         return this.guild.channels.fetch()
         .then(channels => {
-            let toClean = []
-            let parentId = ""
+            var toClean = []
+            var parentId = ""
             // Find the category which holds our channels
             for (const entry of channels) {
                 if (entry[1].name == this.folderName) {
@@ -94,27 +94,29 @@ module.exports = class Cleaner{
     }
     async addPlayerChannel(msg, playerName,playerIndex,playerID){ 
         if(this.mainChannel===undefined){this.mainChannel=msg.channel;}
-        var permArr = [{id: playerID, allow: ['VIEW_CHANNEL'],}];
-        permArr.push({id: this.guild.id, deny: ['VIEW_CHANNEL'],});
-        permArr.push({id: this.clientID, allow: ['VIEW_CHANNEL'],});
+        var permArr = [{id: playerID, allow: [PermissionFlagsBits.ViewChannel],}];
+        permArr.push({id: this.guild.id, deny: [PermissionFlagsBits.ViewChannel],});
+        permArr.push({id: this.clientID, allow: [PermissionFlagsBits.ViewChannel],});
         var parObj=undefined;
         if(this.folderName!==""){
-            parObj = await this.guild.channels.cache.find(x=>x.name.toLowerCase()===this.folderName.toLowerCase() && x.type==="GUILD_CATEGORY");
+
+            parObj = (await this.guild.channels.fetch()).find(x=>x.name.toLowerCase()===this.folderName.toLowerCase() && x.type===ChannelType.GuildCategory);
             if(parObj===undefined){
                 try{
-                    parObj = await this.guild.channels.create(this.folderName, {type: "GUILD_CATEGORY"});
-                }catch{}
+                    parObj = await this.guild.channels.create({name: this.folderName, type: ChannelType.GuildCategory});
+                }catch(err){console.log(err)}
             }
         }
-        var inputs = parObj===undefined ? {type: 'GUILD_TEXT', permissionOverwrites: permArr,} : {type: 'GUILD_TEXT', permissionOverwrites: permArr, parent: parObj} 
+        var inputs = parObj===undefined ? {name: this.gameName + '_' + playerName, type: ChannelType.GuildText, permissionOverwrites: permArr,} : {name: this.gameName + '_' + playerName, type: ChannelType.GuildText, permissionOverwrites: permArr, parent: parObj} 
         try{
-            await this.guild.channels.create(this.gameName + '_' + playerName,inputs)
+            await this.guild.channels.create(inputs)
             .then(newChannel=>{
-                this.thenAddPlayer(msg, newChannel===undefined?msg.author:newChannel,playerIndex,newChannel===undefined?false:true);
-            })
-        }catch{err=>{this.thenAddPlayer(msg, msg.author,playerIndex,false);}};
+                this.thenAddPlayer(msg, newChannel,playerIndex);
+            });
+            return true;
+        }catch(err){console.log(err); return false;};
     }
-    thenAddPlayer(msg, newChannel, playerIndex,madeChannel){
+    thenAddPlayer(msg, newChannel, playerIndex){
         if(this.playerChannels.length<=playerIndex){
             var newCount=playerIndex-this.playerChannels.length+1;
             for(var i=0;i<this.sentMsgsByPlayerByPlayer.length;i++){
@@ -137,12 +139,12 @@ module.exports = class Cleaner{
             }
         }
         this.playerChannels[playerIndex]=newChannel;
-        if(madeChannel){this.sendMessageToSinglePlayer(playerIndex,"other", "Private channel created, please play in here"); this.sendReplyMessage(msg, "other","You have joined the game. A private channel has been created for you to play in.") }
-        else{this.sendReplyMessage(msg, "other", "Error: Could not create new channel. You may be able to use direct messages");}
+        this.sendMessageToSinglePlayer(playerIndex,"other", "Private channel created, please play in here"); 
+        this.sendReplyMessage(msg, "other","You have joined the game. A private channel has been created for you to play in.")
     }
     async removePlayer(playerIndex){ 
         if(this.playerChannels[playerIndex]!==undefined && this.playerChannels[playerIndex].deletable==true){
-            try{await this.playerChannels[playerIndex].delete();}catch{}
+            try{await this.playerChannels[playerIndex].delete();}catch(err){console.log(err);}
         }
         this.playerChannels[playerIndex]=undefined;
     }
@@ -180,7 +182,7 @@ module.exports = class Cleaner{
                         try{await msg.delete();}
                         catch{
                             await this.wait(100);
-                            try{await msg.delete();}catch{}
+                            try{await msg.delete();}catch(err){console.log(err);}
                         }
                     }
                 });
@@ -270,8 +272,8 @@ module.exports = class Cleaner{
         catch{ 
             await this.wait(250);
             try{
-                checkMsg =await this.playerChannels[playerIndex].send(checkContent)
-            }catch{checkMsg=undefined}
+                checkMsg =await this.playerChannels[playerIndex].send(checkContent);
+            }catch{checkMsg=undefined;}
         }
         if(checkMsg==undefined){return false;}
         try{var collection=await this.playerChannels[playerIndex].awaitMessages({filter: m=>true, max: 1, time: 30000, errors: ['time'] });
@@ -282,7 +284,7 @@ module.exports = class Cleaner{
                 else{this.sendMessageToSinglePlayer(playerIndex, "other", cancelContent);}
             }
             if(msgReply.deletable===true){
-                try{await setTimeout(async ()=> {try{await msgReply.delete();}catch{}}, 5000);}catch{}
+                try{await setTimeout(async ()=> {try{await msgReply.delete();}catch(err){console.log(err);}}, 5000);}catch(err2){console.log(err2);}
             }
         }
         catch{if(!this.msgCollected){this.sendMessageToSinglePlayer(playerIndex, "other", cancelContent); this.msgCollected=true;}}
@@ -296,7 +298,7 @@ module.exports = class Cleaner{
             try{ 
                 await this.wait(250);
                 checkMsg = await msgChannel.send(checkContent);
-            }catch{checkMsg=undefined;}
+            }catch(err){console.log(err); checkMsg=undefined;}
         }
         if(checkMsg==undefined){return false;}
         try{var collection=await msgChannel.awaitMessages({filter: m =>m.author.id===msgAuthorID, max: 1, time: 30000, errors: ['time'] });
@@ -307,11 +309,11 @@ module.exports = class Cleaner{
                 else{this.sendReplyMessage(msg, "other", cancelContent);}
             }
             if(msgReply.deletable===true){
-                try{await setTimeout(async (msgReply)=> {try{await msgReply.delete();}catch{}}, 5000);}catch{}
+                try{await setTimeout(async (msgReply)=> {try{await msgReply.delete();}catch(err){console.log(err);}}, 5000);}catch(err2){console.log(err2);}
             }
         }
         catch{if(!this.msgCollected){this.sendReplyMessage(msg, "other", cancelContent); this.msgCollected=true;}}
-        try{await setTimeout(async (checkMsg)=> {try{await checkMsg.delete();}catch{}}, 5000);}catch{}
+        try{await setTimeout(async (checkMsg)=> {try{await checkMsg.delete();}catch(err){console.log(err);}}, 5000);}catch(err2){console.log(err2);}
         return this.msgReturn;   
     }
     async privateMessageToChannel(channel, content){
@@ -327,7 +329,7 @@ module.exports = class Cleaner{
             await this.wait(250);
             try{
                 newMsg = await channel.send(content);
-            }catch{newMsg=undefined;}
+            }catch(err){console.log(err); newMsg=undefined;}
         }
         if(newMsg!==undefined){msgList.push(newMsg);}
         return msgList;
@@ -345,7 +347,7 @@ module.exports = class Cleaner{
             await this.wait(250);
             try{
                 newMsg = await msg.reply(content);
-            }catch{newMsg=undefined;}
+            }catch(err){console.log(err); newMsg=undefined;}
         }
         if(newMsg!==undefined){msgList.push(newMsg);}
         return msgList;

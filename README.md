@@ -20,21 +20,23 @@ If you want to use this code for your game, you will need to create your own bot
 2. Go to https://discord.com/developers/applications
 3. Click on 'New Application' in thr top right of the Applicatipns list
 4. Name it and set the icon for your bot. There's a Slash.png file in the repository you can use for this.
-5. In your new application, go to the 'Bot' section and click 'Add Bot'. Click the button to confirm that you want to create a bot.
-6. Click on 'Click to Reveal Token' and then copy this. **WARNING**: DO NOT SHARE THIS TOKEN WITH ANYONE ELSE; it could be used to hack into your bot. 
-7. Go to the folder with the code and open Index.js (you can do this in notepad)
-8. At the bottom of the file is the line "client.login('process.env.LOGIN_TOKEN');" replace process.env.LOGIN_TOKEN with the bot's token you've just copied (keep the single quote marks around it!). Save the file.
-9. You need some way to install the Javascript libraries; I suggest installing Node from https://nodejs.org/en/download/.  You can then open a Node command prompt and enter "cd [folder address]" with the address of your new folder containing the bot code. This should navigate the command prompt to your folder. You should then enter the command 'npm install' to set up the libraries.
+5. In your new application, go to the 'Installation' section and set install link to 'none'. This will llow you to keep your bot private.
+6. In your new application, go to the 'Bot' section to add a bot. Untick 'public bot' and tick 'message content intent'. 
+7. You will need the bot token; click 'Reset Token' and then copy this into a file for your records. You my need to enter your discord password. **WARNING**: DO NOT SHARE THIS TOKEN WITH ANYONE ELSE; it could be used to hack into your bot. 
+8. Go to the folder with the code and open Index.js (you can do this in notepad)
+9. At the bottom of the file is the line "client.login('process.env.LOGIN_TOKEN');" replace process.env.LOGIN_TOKEN with the bot's token you've just copied (keep the single quote marks around it!). Save the file.
+10. You need some way to install the Javascript libraries; I suggest installing Node from https://nodejs.org/en/download/.  You can then open a Node command prompt and enter "cd [folder address]" with the address of your new folder containing the bot code. This should navigate the command prompt to your folder. You should then enter the command 'npm install' to set up the libraries.
 
 
 ## Running the Bot
 Now that you have a bot, you need to know how to set it running.
 1. The first step is to invite the bot to your game server, if this is the first time you're running the bot on this server. Go to the discord developers applications page again and double-click on the bot's icon to bring up the setings. 
-2. Under '0Auth2', go to the URL Generator, and click 'bot'. Underneath this, you will see a new list of permissions; select 'Manage Roles', 'Manage Channels', 'Read Messages/View Channels', 'Send Messages', and 'Manage Messages'.
-3. This will cause a URL to be generated under the 'permissions' section. Copy that URL and enter it into a web browser to invite the bot into your server. Make sure you've selected the permissions first as in the previous step, otherwise your bot won't be able to do its job!
-4. Now you just need some way to run the code whenever you want the bot to be working. If you already installed Node earlier, you can use this. Open a Node command prompt and enter "cd [folder address]" with the address of your new folder containing the bot code. Finally, enter the command 'Node Index' to run the Index file.
+2. Under '0Auth2', go to the URL Generator, and click 'bot'. Underneath this, you will see a new list of permissions; select 'View Channels, 'Manage Roles', 'Manage Channels', 'Send Messages', and 'Manage Messages'. 
+3. Underneath this list, make sure integration type is set to 'guild install'
+4. This will cause a URL to be generated under the 'permissions' section. Copy that URL and enter it into a web browser to invite the bot into your server. Make sure you've selected the permissions first as in the previous step, otherwise your bot won't be able to do its job!
+5. Now you just need some way to run the code whenever you want the bot to be working. If you already installed Node earlier, you can use this. Open a Node command prompt and enter "cd [folder address]" with the address of your new folder containing the bot code. Finally, enter the command 'Node Index' to run the Index file.
 
-Once the bot is already on your server, you only need to follow **step 4** again to set the bot going. Note that if the code is not currently being run somewhere, the bot won't function, and it will forget any games or game channels it made earlier if it closes while you were in the middle of a game. You can just run it on your own computer if you're happy with it only working when you're online, otherwise you'll need to find a server to keep it going.
+Once the bot is already on your server, you only need to follow the final step, **step 5**, to set the bot going again. Note that if the code is not currently being run somewhere, the bot won't function, and it will forget any games or game channels it made earlier if it closes while you were in the middle of a game. You can just run it on your own computer if you're happy with it only working when you're online, otherwise you'll need to find a server to keep it going.
 
 Set your name in the privacy notice using the environment variable BOT_ADMIN_NAME.
 

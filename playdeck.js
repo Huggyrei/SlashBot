@@ -1,8 +1,8 @@
 //const fs = require('fs');
 "use strict";
-const csv=require("csvtojson");
+import csv from "csvtojson";
 
-exports.makeplaydeck= async function(msg, cleaner)
+export async function makeplaydeck(msg, cleaner)
 {
     var deckarray = [
         {smalltext: "2D :male_sign: (Gorillaz) **3 points**", description:"Hollow-eyed lead singer of an animated band.", score:3},
@@ -545,7 +545,7 @@ exports.makeplaydeck= async function(msg, cleaner)
             if(data[0].hasOwnProperty("Score")===false){check1=false; msgContent=msgContent + "\nNew cards file cards.csv does not contain 'Score' field."}
             if(check1===false){data=[];}
         }
-    }catch{data=[];}
+    }catch(err){console.log(err); data=[];}
     var check2=true;
     for(var i=0;i<data.length;i++){
         var dataItem=data[i];

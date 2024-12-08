@@ -1,6 +1,6 @@
 "use strict";
-const Hand=require('./hand.js');
-module.exports = class Player{
+import Hand from './hand.js';
+export default class Player{
     constructor(userID, playerName, cleaner, index, isRando, includeDescription){
         this.index=index;           this.id=userID;         this.name=playerName;       
         this.isRando=isRando;       this.cleaner=cleaner;   this.score=0;

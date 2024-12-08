@@ -1,5 +1,5 @@
 "use strict";
-module.exports = class Deck{
+export default class Deck{
     constructor(deckName, startDeck, cleaner, allowReshuffle){
         this.startDeck=startDeck;   this.cleaner=cleaner;   this.allowReshuffle=allowReshuffle; this.name=deckName;
         this.cleaner.addSentMessageTypePlayers(deckName + "_draw");
@@ -15,7 +15,7 @@ module.exports = class Deck{
     shuffle(carddeck){
         if(carddeck.lenth===0) {return;}
         for (var i = carddeck.length - 1; i > 0; i--) {
-            let j = Math.floor(Math.random() * (i + 1));
+            var j = Math.floor(Math.random() * (i + 1));
             [carddeck[i], carddeck[j]] = [carddeck[j], carddeck[i]];
         }
 	}

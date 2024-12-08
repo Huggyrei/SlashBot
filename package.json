@@ -1,16 +1,17 @@
 {
   "name": "SlashBot",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
-  "main": "Index.js",
+  "type": "module",
+  "exports": "./index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Huggyrei",
   "license": "ISC",
   "dependencies": {
-    "csvtojson": "^2.0.0",
-    "discord.js": "^13.5.1"
+    "csvtojson": "^2.0.10",
+    "discord.js": "^14.16.3"
   }
 }

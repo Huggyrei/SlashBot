@@ -1,8 +1,15 @@
-const Discord = require('discord.js');
-const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES
-]});
-const Game = require('./game.js')
-let game = new Game()
+import { Client, GatewayIntentBits } from 'discord.js';
+const client = new Client({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.MessageContent,
+		GatewayIntentBits.GuildMembers,
+	],
+})
+
+import Game from './game.js';
+var game = new Game()
 
 client.on('ready', () => {
  console.log(`Logged in as ${client.user.tag}!`);

@@ -1,5 +1,5 @@
 
-exports.makerandodeck= function()
+export function makerandodeck()
 {
     var deckarray = [
         {fulltext: 'Ayn Rando'},
